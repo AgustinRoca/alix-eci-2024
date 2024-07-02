@@ -40,7 +40,7 @@ def format_json(input_file, output_file):
         print(f"An error occurred: {e}")
 
 # Usage
-input_file = 'parcelas.json'  # Path to your 75MB JSON file
-output_file = 'parcelas_santiago.json'  # Path to save the formatted JSON file
+input_file = 'data/parcelas_santiago.json'  # Path to your 75MB JSON file
+output_file = 'data/parcelas_santiago_formatted.json'  # Path to save the formatted JSON file
 
 format_json(input_file, output_file)
