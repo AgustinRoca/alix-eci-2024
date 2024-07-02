@@ -18,6 +18,8 @@ merged_df = pd.merge(parcels, claims_df, left_on='id', right_on='idParcela', how
 print(merged_df.columns)
 print(merged_df[['bbox']].head())
 
+merged_df.to_csv('data/clean_data.csv', index=False)
+
 y_true = ground_truth_claims['Valuacion_Danios']
 y_pred = ground_truth_claims.apply(predict_valuacion_danios, axis=1)
 
