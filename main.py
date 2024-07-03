@@ -15,6 +15,6 @@ politeness_level(df)
 referred_company_name(df)
 psychological_impact_mentioned(df)
 economic_impact_mentioned(df)
-df = df[['id', 'tipo', 'estado', 'valuacion', 'pedania', 'written_by_lawyer', 'predominant_feeling', 'formality', 'politeness', 'referred_company_name', 'psychological_impact', 'economic_impact', 'Valuacion_Danios']]
-df = df[df['Valuacion_Danios'].notna()]
-df.to_csv('data/processed_data_train.csv', index=False)
+df = df[['id', 'tipo', 'estado', 'valuacion', 'pedania', 'written_by_lawyer', 'predominant_feeling', 'formality', 'politeness', 'referred_company_name', 'psychological_impact', 'economic_impact', 'ValorReclamo', 'Valuacion_Danios']]
+# df = df[df['Valuacion_Danios'].notna()]
+df.to_csv('data/processed_data.csv', index=False)
