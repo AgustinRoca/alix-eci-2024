@@ -1,27 +1,87 @@
 import pandas as pd
+import math
 
-from data import get_claims, get_parcels_data
-from model import predict_valuacion_danios
-from sklearn.metrics import mean_absolute_error
+def clean_text(df):
+    texts = []
+    for text, direccion, propietario in df[['TextoReclamo', 'direccion', 'Propietario']].values:
+
+        text = text.lower()
+        text = text.replace('\\n', ' ')
+        text = text.replace(',', '')
+        text = text.replace('.', '')
+        text = text.replace(')', '')
+        text = text.replace('(', '')
+        text = text.replace('¡', '')
+        text = text.replace('!', '')
+        text = text.replace('?', '')
+        text = text.replace('¿', '')
+
+        while '  ' in text:
+            text = text.replace('  ', ' ')
+    
+        # remove stopwords
+        stop_words = ['un', 'y', 'su', 'que', 'en', 'por', 'a', 'el', 'la', 'una', 'con', 'es', 'no', 'los', 'para', 'ha', 'mi', 'de', 'me', 'del', 'se', 'las', 'como', 'este', 'ya', 'al', 'nos', 'lo', 'ende', 'o', 'han', 'esta', 'he']
+        for word in stop_words:
+            spaced_word = ' ' + word + ' '
+            text = text.replace(spaced_word, ' ')
+            if text.startswith(word + ' '):
+                text = text[len(word) + 1:]
+            
+        # remove direccion words from text
+        direccion = direccion.lower()
+        direccion = direccion.replace(',', '')
+        text = ' '.join([word for word in text.split() if word not in direccion.split()])
+
+        if type(propietario) == str:
+            propietario = propietario.lower()
+            propietario = propietario.replace(',', '')
+            text = ' '.join([word for word in text.split() if word not in propietario.split()])
 
 
-claims_df = get_claims()
-# Get the claims that are validated
-ground_truth_claims = claims_df[claims_df['Validado'] == 'X']
+        for word in direccion.split():
+            spaced_word = ' ' + word + ' '
+            text = text.replace(spaced_word, ' ')
+            if text.startswith(word + ' '):
+                text = text[len(word) + 1:]
+        
 
-sanroque_parcels = get_parcels_data('data/parcelas_sanroque.json')
-santiago_parcels = get_parcels_data('data/parcelas_santiago.json')
-parcels = pd.concat([sanroque_parcels, santiago_parcels])
-merged_df = pd.merge(parcels, claims_df, left_on='id', right_on='idParcela', how='right')
+        common_words = ['incendio', 'forestal', 'terreno', 'propiedad', 'atención']
+        for word in common_words:
+            spaced_word = ' ' + word + ' '
+            text = text.replace(spaced_word, ' ')
+            if text.startswith(word + ' '):
+                text = text[len(word) + 1:]
 
-# get column names
-print(merged_df.columns)
-print(merged_df[['bbox']].head())
+        text = ' '.join([word for word in text.split() if not word.startswith('$')])
 
-merged_df.to_csv('data/clean_data.csv', index=False)
+        texts.append(text)
 
-y_true = ground_truth_claims['Valuacion_Danios']
-y_pred = ground_truth_claims.apply(predict_valuacion_danios, axis=1)
+    df['cleaned_texts'] = texts
+    return texts
 
-mae = mean_absolute_error(y_true, y_pred)
-print(f'Mean Absolute Error: {mae}')
+
+def pecentage_appearences_words(df):
+    words = {}
+    for text in df['cleaned_texts']:
+        words_appeared_this_text = set()
+        for word in text.split():
+            if word not in words_appeared_this_text:
+                if word in words:
+                    words[word] += 1
+                else:
+                    words[word] = 1
+                words_appeared_this_text.add(word)
+        
+    words = {word: apps/len(df) for word, apps in words.items()}
+    words = {k: v for k, v in sorted(words.items(), key=lambda item: item[1], reverse=True) if v > 0.05}
+    return words
+
+        
+
+df = pd.read_csv('data/clean_data.csv')
+df['id'] = df['id'].astype('Int64')
+df['vut'] = df['vut'].astype('Int64')
+
+clean_text(df)
+appearences = pecentage_appearences_words(df)
+print(appearences)

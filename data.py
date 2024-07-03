@@ -30,6 +30,7 @@ def get_claims(file_path='data/Claims-WorkingFile_v2.csv'):
     df['idParcela'] = df['idParcela'].str.replace('-SAN ROQUE', '')
     df['idParcela'] = df['idParcela'].str.replace('-SANTIAGO', '')
     df['abogado'] = df['TextoReclamo'].str.contains('abogado', case=False, na=False)
+    df['TextoReclamo'] = df['TextoReclamo'].str.replace('\r\n', '\\n')
 
     # Extract the address from the claim text when the address is not provided
     missing_addresses = df[df['direccion'].isna()]
