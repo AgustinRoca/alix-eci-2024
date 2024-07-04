@@ -2,6 +2,8 @@ import pandas as pd
 import json
 from pyproj import Proj, Transformer
 from tqdm import tqdm
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import textstat
 
 def get_direccion_from_texto_reclamo(texto_reclamo):
     phrases = ['situado en', 'lote en', 'ubicado en', 'terreno urbano en', 'terreno en', 'situada en', 'ubicada en', 'vivienda en', 'localizado en', 'propiedad en', 'lote urbano en']
@@ -205,156 +207,28 @@ def written_by_lawyer(df):
 
 
 def predominant_feeling(df):
-    # anger, fear, sadness, anguish, neutral
-
-    anger_keywords = [
-        'enojado',
-        'enojada',
-        'furioso',
-        'furiosa',
-        'furiosamente',
-        'caliente',
-        'intolerable'
-    ]
-
-    fear_keywords = [
-        'miedo',
-        'asustado',
-        'asustada',
-        'temor',
-        'temeroso',
-        'temerosa',
-    ]
-
-    sadness_keywords = [
-        'triste',
-        'tristeza',
-        'llorar',
-        'llorando',
-        'lamentablemente',
-        'lamentable'
-    ]
-
-    anguish_keywords = [
-        'angustia',
-        'angustiado',
-        'angustiada',
-        'angustiante',
-        'congoja',
-        'desazón',
-        'inquietud'
-    ]
-
-    feelings = []
-    for text in df['cleaned_text']:
-
-        feeling_degrees = {
-            'anger': 0,
-            'fear': 0,
-            'sadness': 0,
-            'anguish': 0,
-        }
-
-        for word in text.split():
-            if word in anger_keywords:
-                feeling_degrees['anger'] += 1
-            elif word in fear_keywords:
-                feeling_degrees['fear'] += 1
-            elif word in sadness_keywords:
-                feeling_degrees['sadness'] += 1
-            elif word in anguish_keywords:
-                feeling_degrees['anguish'] += 1
-
-        predominant = max(feeling_degrees, key=feeling_degrees.get)
-        if feeling_degrees[predominant] == 0:
-            predominant = 'neutral'
-        feelings.append(predominant)
-    df['predominant_feeling'] = feelings
+    ntlk_sentiment = SentimentIntensityAnalyzer()
+    sentiments = []
+    for text in df['TextoReclamo']:
+        sentiment = ntlk_sentiment.polarity_scores(text)
+        sentiments.append(sentiment['compound'])
+    df['sentiment'] = sentiments
 
 def formality_level(df):
-    obvious_favorable_keywords = [
-        'respetuosamente',
-        'atentamente',
-        'sinceramente',
-    ]
+    # obvious_unfavorable_keywords = [
+    #     're',
+    #     "pa'",
+    #     'jodido',
+    #     'jodidos',
+    #     'diablo',
+    #     'poquito'
+    # ]
 
-    obvious_unfavorable_keywords = [
-        're',
-        "pa'",
-        'jodido',
-        'jodidos',
-        'diablo',
-        'poquito'
-    ]
-
-    slight_favorable_keywords = [
-        'favor',
-    ]
-
-    slight_unfavorable_keywords = [
-
-    ]
-
-    formalities = []
-    for text in df['cleaned_text']:
-        degree=0.5
-        step = 0.1
-        for word in text.split():
-            if word in obvious_favorable_keywords:
-                degree = 1
-                break
-            if word in obvious_unfavorable_keywords:
-                degree = 0
-                break
-            if word in slight_favorable_keywords:
-                degree += step
-            elif word in slight_unfavorable_keywords:
-                degree -= step
-        
-        formalities.append(degree)
-    df['formality'] = formalities
-
-def politeness_level(df):
-    obvious_favorable_keywords = [
-        'favor',
-        'gracias',
-        'rogamos',
-        'agradezco',
-        'apreciamos'
-    ]
-
-    obvious_unfavorable_keywords = [
-       'culpa',
-       'culpable',
-       'diablo'
-    ]
-
-    slight_favorable_keywords = [
-        
-    ]
-
-    slight_unfavorable_keywords = [
-
-    ]
-
-    politenesses = []
-    for text in df['cleaned_text']:
-        degree=0.5
-        step = 0.1
-        for word in text.split():
-            if word in obvious_favorable_keywords:
-                degree = 1
-                break
-            if word in obvious_unfavorable_keywords:
-                degree = 0
-                break
-            if word in slight_favorable_keywords:
-                degree += step
-            elif word in slight_unfavorable_keywords:
-                degree -= step
-
-        politenesses.append(degree)
-    df['politeness'] = politenesses
+    flesch_scores = []
+    for text in df['TextoReclamo']:
+        flesch_score = textstat.flesch_reading_ease(text)
+        flesch_scores.append(flesch_score)
+    df['formality'] = flesch_scores
 
 def referred_company_name(df):
     possible_names = [
@@ -476,3 +350,27 @@ def economic_impact_mentioned(df):
 
         economic_impacts.append(degree)
     df['economic_impact'] = economic_impacts
+
+def physical_impact_mentioned(df):
+    obvious_favorable_keywords = [
+        'hospital',
+        'hospitalización',
+        'hospitalizado',
+        'hospitalizada',
+        'lesiones',
+        'salud',
+        'internación',
+        'internado',
+        'internada'
+    ]
+
+    physical_impacts = []
+    for text in df['cleaned_text']:
+        degree=0
+        for word in text.split():
+            if word in obvious_favorable_keywords:
+                degree = 1
+                break
+
+        physical_impacts.append(degree)
+    df['physical_impact'] = physical_impacts
