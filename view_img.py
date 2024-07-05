@@ -4,6 +4,22 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+def get_images(root):
+    """
+    Bands:
+    2: Blue
+    3: Green
+    4: Red
+    5: NIR
+    7: SWIR
+    """
+    bands = {}
+    for i in range(1, 7):
+        if i != 6:
+            bands[i] = f'{root}/b{i}.tif'
+    ndvi = f'{root}/ndvi.tif'
+    return bands, ndvi
+
 def align_geotiff_images_in_memory(src_path1, src_path2):
     with rasterio.open(src_path1) as src1, rasterio.open(src_path2) as src2:
         transform1, width1, height1 = calculate_default_transform(
@@ -30,8 +46,9 @@ def align_geotiff_images_in_memory(src_path1, src_path2):
             'height': height
         })
 
-        aligned_data1 = []
-        aligned_data2 = []
+        aligned_data1 = np.empty((src1.count, height, width), dtype=src1.meta['dtype'])
+        aligned_data2 = np.empty((src2.count, height, width), dtype=src2.meta['dtype'])
+
         for i in range(1, src1.count + 1):
             src1_data = src1.read(i)
             src2_data = src2.read(i)
@@ -56,119 +73,90 @@ def align_geotiff_images_in_memory(src_path1, src_path2):
                 dst_crs=src2.crs,
                 resampling=Resampling.nearest)
 
-            aligned_data1.append(dst1_data)
-            aligned_data2.append(dst2_data)
-        
-    return aligned_data1, aligned_data2
+            aligned_data1[i-1] = dst1_data
+            aligned_data2[i-1] = dst2_data
 
-def rgb_img(imgs):
-    rgb_img = np.zeros((imgs[0].shape[0], imgs[0].shape[1], 3), dtype=np.uint8)
-    rgb_img[:, :, 0] = imgs[3] # red
-    rgb_img[:, :, 1] = imgs[2] # green
-    rgb_img[:, :, 2] = imgs[1] # blue
-    rgb_img[:, :, 0] = cv2.equalizeHist(rgb_img[:, :, 0])
-    rgb_img[:, :, 1] = cv2.equalizeHist(rgb_img[:, :, 1])
-    rgb_img[:, :, 2] = cv2.equalizeHist(rgb_img[:, :, 2])
-    return rgb_img
+    return aligned_data1[0], aligned_data2[0]
 
-def ndvi_img(imgs):
-    np.seterr(divide='ignore', invalid='ignore')
-    ndvi_img = (imgs[4] - imgs[3]) / (imgs[4] + imgs[3])
-    ndvi_img[np.isnan(ndvi_img)] = 0
-    ndvi_img = (ndvi_img + 1) * 127.5
-    ndvi_img = ndvi_img.astype(np.uint8)
-    return ndvi_img
+def process_dnbr(dnbr):
+    verde = (126,252,39)
+    amarillo = (245,242,47)
+    naranja = (233,129,18)
+    rojo = (196, 0, 0)
 
-def nbr_img(imgs):
-    np.seterr(divide='ignore', invalid='ignore')
-    nbr_img = (imgs[4] - imgs[6]) / (imgs[4] + imgs[6])
-    nbr_img[np.isnan(nbr_img)] = 0
-    nbr_img = (nbr_img + 1) * 127.5
-    nbr_img = nbr_img.astype(np.uint8)
-    return nbr_img
+    segmented_img = np.zeros((dnbr.shape[0], dnbr.shape[1], 3), dtype=np.uint8)
 
-# Paths to the source files
-src_paths = [
-    'satimgs/LC09_L2SP_229082_20230927_20230929_02_T1_SR_B5.TIF',
-    'satimgs/LC08_L2SP_229082_20231122_20231128_02_T1_SR_B5.TIF',
-    'satimgs/LC09_L2SP_229082_20230927_20230929_02_T1_SR_B7.TIF',
-    'satimgs/LC08_L2SP_229082_20231122_20231128_02_T1_SR_B7.TIF'
-]
+    segmented_img[(dnbr <= -0.1)] = verde
+    segmented_img[(dnbr > -0.1) & (dnbr <= 0)] = amarillo
+    segmented_img[(dnbr > 0) & (dnbr <= 0.1)] = naranja
+    segmented_img[(dnbr > 0.1)] = rojo
+    return segmented_img
 
-# Align the images in memory
-aligned_data1_b5, aligned_data2_b5 = align_geotiff_images_in_memory(src_paths[0], src_paths[1])
-aligned_data1_b7, aligned_data2_b7 = align_geotiff_images_in_memory(src_paths[2], src_paths[3])
+def process_ndvi(ndvi):
+    low = (255,255,255)
+    medium = (117,195,119)
+    high = (0, 68, 27)
 
-# Read other bands and replace aligned data for band 5 and band 7
-sep_root = 'satimgs/LC09_L2SP_229082_20230927_20230929_02_T1'
-nov_root = 'satimgs/LC08_L2SP_229082_20231122_20231128_02_T1'
+    segmented_img = np.zeros((ndvi.shape[0], ndvi.shape[1], 3), dtype=np.uint8)
 
-sep_imgs = []
-nov_imgs = []
-for i in range(1, 8):
-    img = cv2.imread(f'{sep_root}_SR_B{i}.TIF', cv2.IMREAD_GRAYSCALE)
-    sep_imgs.append(img)
-sep_imgs[4] = aligned_data1_b5[0]  # Aligned band 5 data for sep
-sep_imgs[6] = aligned_data1_b7[0]  # Aligned band 7 data for sep
+    segmented_img[(ndvi <= 0)] = low
+    segmented_img[(ndvi > 0) & (ndvi <= 0.3)] = medium
+    segmented_img[(ndvi > 0.3)] = high
+    return segmented_img
 
-for i in range(1, 8):
-    img = cv2.imread(f'{nov_root}_SR_B{i}.TIF', cv2.IMREAD_GRAYSCALE)
-    nov_imgs.append(img)
-nov_imgs[4] = aligned_data2_b5[0]  # Aligned band 5 data for nov
-nov_imgs[6] = aligned_data2_b7[0]  # Aligned band 7 data for nov
+def get_rgb_img(bands_paths):
+    bands = [cv2.imread(bands_paths[band], cv2.IMREAD_GRAYSCALE) for band in bands_paths]
 
-# Ensure all images have the same shape
-target_shape = (min(sep_imgs[0].shape[0], nov_imgs[0].shape[0]), min(sep_imgs[0].shape[1], nov_imgs[0].shape[1]))
-sep_imgs = [cv2.resize(img, target_shape, interpolation=cv2.INTER_NEAREST) for img in sep_imgs]
-nov_imgs = [cv2.resize(img, target_shape, interpolation=cv2.INTER_NEAREST) for img in nov_imgs]
+    rgb = np.zeros((bands[1].shape[0], bands[1].shape[1], 3), dtype=np.uint8)
+    rgb[:,:,0] = bands[3] # red
+    rgb[:,:,1] = bands[2] # green
+    rgb[:,:,2] = bands[1] # blue
 
-# Compute NBR and dNBR images
-nbr_sep = nbr_img(sep_imgs)
-nbr_nov = nbr_img(nov_imgs)
+    # equalize
+    for i in range(3):
+        rgb[:,:,i] = cv2.equalizeHist(rgb[:,:,i])
+    return rgb
 
-# Plot NBR images
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
-ax1.set_title('Sep')
-ax1.imshow(nbr_sep, cmap='gray')
+def main():
+    sep_bands_paths, sep_ndvi_path = get_images('satimgs/sep')
+    nov_bands_paths, nov_ndvi_path = get_images('satimgs/nov')
+    dnbr_path = 'satimgs/dnbr.tif'
 
-ax2.set_title('Nov')
-ax2.imshow(nbr_nov, cmap='gray')
+    sep_aligned_imgs = []
+    nov_aligned_imgs = []
+    base_img = sep_bands_paths[1]
+    for i in sep_bands_paths:
+        _, aligned = align_geotiff_images_in_memory(base_img, sep_bands_paths[i])
+        sep_aligned_imgs.append(aligned)
 
-plt.show()
+    for i in nov_bands_paths:
+        _, aligned = align_geotiff_images_in_memory(base_img, nov_bands_paths[i])
+        nov_aligned_imgs.append(aligned)
 
-# Compute dNBR image
-dnbr = nbr_sep - nbr_nov
-dnbr = (dnbr + 1) / 2 * 127.5
-dnbr = dnbr.astype(np.uint8)
+    _, sep_aligned_ndvi = align_geotiff_images_in_memory(base_img, sep_ndvi_path)
+    _, nov_aligned_ndvi = align_geotiff_images_in_memory(base_img, nov_ndvi_path)
+    _, aligned_dnbr = align_geotiff_images_in_memory(base_img, dnbr_path)
 
-# Plot dNBR image with temperature colormap
-plt.imshow(dnbr, cmap='coolwarm')
-plt.title('dNBR')
-plt.colorbar()
-plt.show()
+    rgb_sep = get_rgb_img(sep_bands_paths)
+    # save image RGB
+    cv2.imwrite('rgb_sep.png', cv2.cvtColor(rgb_sep, cv2.COLOR_RGB2BGR))
 
-# Compute and display RGB images
-rgb_sep = rgb_img(sep_imgs)
-rgb_nov = rgb_img(nov_imgs)
+    # 2 subplots, rgb and ndvi, sharex and sharey
+    ax1 = plt.subplot(1, 2, 1)
+    ax1.imshow(rgb_sep)
+    ax1.set_title('RGB')
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
-ax1.set_title('Sep RGB')
-ax1.imshow(rgb_sep)
+    sep_ndvi_segmented = process_ndvi(sep_aligned_ndvi)
+    ax2 = plt.subplot(1, 2, 2, sharex=ax1, sharey=ax1)
+    ax2.imshow(sep_ndvi_segmented)
+    ax2.set_title('NDVI')
 
-ax2.set_title('Nov RGB')
-ax2.imshow(rgb_nov)
+    plt.show()
 
-plt.show()
+    # segmented_img = process_dnbr(aligned_dnbr)
+    # plt.imshow(segmented_img) 
+    # plt.title('dNBR')
+    # plt.show()
 
-# Compute and display NDVI images
-ndvi_sep = ndvi_img(sep_imgs)
-ndvi_nov = ndvi_img(nov_imgs)
-
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
-ax1.set_title('Sep NDVI')
-ax1.imshow(ndvi_sep, cmap='gray')
-
-ax2.set_title('Nov NDVI')
-ax2.imshow(ndvi_nov, cmap='gray')
-
-plt.show()
+if __name__ == '__main__':
+    main()
