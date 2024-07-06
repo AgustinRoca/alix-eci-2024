@@ -170,10 +170,10 @@ def get_images():
 def main():
     sep_rgb, nov_rgb, sep_ndvi, nov_ndvi, dnbr = get_images()
 
-    ax1 = plt.subplot(1, 1, 1)
-    ax1.set_title('Sep RGB')
-    plt.imshow(dnbr)
-    plt.axis('off')
+    # ax1 = plt.subplot(1, 1, 1)
+    # ax1.set_title('Sep RGB')
+    # plt.imshow(dnbr)
+    # plt.axis('off')
 
     # ax2 = plt.subplot(3, 2, 2, sharex=ax1, sharey=ax1)
     # ax2.set_title('Nov RGB')
