@@ -51,7 +51,7 @@ def get_parcels_data(shapefile_path, tiff_paths):
     
     return result
 
-def plot_parcel_on_tiff(shapefile_path, tiff_path, parcel_id):
+def plot_parcel_on_tiff(shapefile_path, tiff_path, field, value_filter):
     # Load shapefile
     shapefile = gpd.read_file(shapefile_path)
 
@@ -73,10 +73,10 @@ def plot_parcel_on_tiff(shapefile_path, tiff_path, parcel_id):
     shapefile = shapefile.to_crs(tiff_crs)
 
     # Find the parcel with the given ID
-    parcel = shapefile[shapefile['par_idparc'] == parcel_id]
+    parcel = shapefile[shapefile[field] == value_filter]
 
     if parcel.empty:
-        print(f"Parcel ID {parcel_id} not found.")
+        print(f"{field} {value_filter} not found.")
         return
 
     # Plot the TIFF
@@ -88,17 +88,18 @@ def plot_parcel_on_tiff(shapefile_path, tiff_path, parcel_id):
         # Plot the parcel on top of the TIFF
         parcel.plot(ax=ax, facecolor='none', edgecolor='red', linewidth=2)
 
-        plt.title(f'Parcel {parcel_id} on TIFF')
+        plt.title(f'{field} {value_filter} on TIFF')
         plt.show()
     
     print('Mean pixel value:', calculate_mean_pixel_value(tiff_path, parcel['geometry']))
 
+
 if __name__ == '__main__':
     # Define paths to shapefile and TIFF file
-    shapefile_path = 'data/parcelas_santiago.shp'
+    shapefile_path = 'data/parcelas_sanroque.shp'
     tiff_path = 'satimgs/dnbr.tif'
-    parcel_id = 1200152  # Replace with the actual parcel ID you want to plot
+    parcel_id = 1134774  # Replace with the actual parcel ID you want to plot
 
     # Call the function to plot the parcel on the TIFF
-    plot_parcel_on_tiff(shapefile_path, tiff_path, parcel_id)
+    plot_parcel_on_tiff(shapefile_path, tiff_path, 'par_idparc', parcel_id)
 
