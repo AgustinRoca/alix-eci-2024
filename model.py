@@ -11,10 +11,13 @@ def predict_valuacion_danios(row):
     return predicted
     
 if __name__ == '__main__':
-    df = pd.read_csv('data/clean_data.csv')
+    df = pd.read_csv('data/clean_raw_data.csv')
+
     df['Valuacion_Danios_Predicted'] = df.apply(predict_valuacion_danios, axis=1)
+
     mae = (df['Valuacion_Danios'] - df['Valuacion_Danios_Predicted']).abs().mean()
     print(f'MAE: {mae}')
+    
     df = df[['id', 'Valuacion_Danios_Predicted']]
     test_df = pd.read_csv('data/test.csv')
     test_df['idParcelaWithoutPedania'] = test_df['idParcela'].str.split('-').str[0]
