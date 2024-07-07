@@ -7,37 +7,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 
-def first_term(row, m):
-    return m * row['valuacion']
 
-def test_model(row):
-    reclamo = row['ValorReclamo']
-    valuacion = row['valuacion']
-    dnbr = row['dnbr']
-    sep_ndvi = row['sep_ndvi']
-    nov_ndvi = row['nov_ndvi']
-    diff_ndvi = nov_ndvi - sep_ndvi
-    actual = row['Valuacion_Danios']
-    if dnbr < -0.1:
-        return 0
-    return 8.47254759e-01 * valuacion + 486555.59593466 * np.log(dnbr + 0.1) + 873788.53179845
-
-def real_model(row):
-    reclamo = row['ValorReclamo']
-    valuacion = row['valuacion']
-    dnbr = row['dnbr']
-    sep_ndvi = row['sep_ndvi']
-    nov_ndvi = row['nov_ndvi']
-    diff_ndvi = nov_ndvi - sep_ndvi
-    actual = row['Valuacion_Danios']
-    if not np.isnan(actual):
-        return actual
-    if dnbr < -0.1:
-        return 0
-    value = 8.47254759e-01 * valuacion + 486555.59593466 * np.log(dnbr + 0.1) + 873788.53179845
-    if value < 0 or np.isnan(value):
-        return 0
-    return value
 
 def linear(x, m, b):
     return m * x + b
