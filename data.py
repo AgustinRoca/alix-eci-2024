@@ -132,6 +132,10 @@ def get_physical_impact_mentioned(texto_reclamo):
     words = ['hospital', 'hospitalización', 'hospitalizado', 'hospitalizada', 'lesiones', 'salud', 'internación', 'internado', 'internada']
     return any_word_in_text(words, texto_reclamo)
 
+def get_fauna_impact_mentioned(texto_reclamo):
+    words = ['animal', 'fauna', 'mascota', 'perro', 'gato', 'pájaro', 'mascotas', 'animales', 'perrito', 'gatito', 'pajarito']
+    return any_word_in_text(words, texto_reclamo)
+
 def main():
     df = pd.read_csv('data/clean_raw_data.csv')
     df['direccion'] = df['TextoReclamo'].apply(get_direccion_from_texto_reclamo)    
@@ -142,6 +146,7 @@ def main():
     df['psychological_impact_mentioned'] = df['TextoReclamo'].apply(get_psychological_impact_mentioned)
     df['economic_impact_mentioned'] = df['TextoReclamo'].apply(get_economic_impact_mentioned)
     df['physical_impact_mentioned'] = df['TextoReclamo'].apply(get_physical_impact_mentioned)
+    df['fauna_impact_mentioned'] = df['TextoReclamo'].apply(get_fauna_impact_mentioned)
     df.to_csv('data/clean_processed_data.csv', index=False)
 
 if __name__ == '__main__':
