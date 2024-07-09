@@ -1,7 +1,41 @@
-- Abogado
-- urbano
-- baldio
-- hollin y cenizas
-- limpieza y restauracion
+seguro que si
+-------------
+- urbano/rural -done
+- baldio/edificado (desocupado?) - done
+- abogado - done
+- formal/informal -done
+- hollin y cenizas - done
+- limpieza y restauracion (y reforestacion?)
+- daño vegetacion - done
+- golpe emocional - done
+- golpe economico/valor de mercado?
+- daño de cultivos (rural)
+- imposibilidad de seguir trabajando (rural)
+- daño en la salud
+
+maybe?
+------
+- aprecio_compañia (distinguidos/apreciados/atencion ??)
+- inquietud??
+- tierra deteriorada/calidad de suelo ??
+- valor futuro ??
+- amenaza legal? 
+- urgente??
+- poliza de seguro no cubre / si cubre
+- humo?
+- medidas preventivas?
+- evacuacion!
+- evaluacion?
+- negligencia en el manejo
+
+otras columnas usadas
+---------------------
+- empresa aseguradora
+- nombre de la persona
+- direccion
+- localidad
+- departamento
+
+otra cosa a tener en cuenta
+---------------------------
 - valorreclamo parecido a valuacion
-- 

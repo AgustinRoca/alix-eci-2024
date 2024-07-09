@@ -2,7 +2,7 @@ import pandas as pd
 
 from model import predict_valuacion_danios 
 
-df = pd.read_csv('data/clean_raw_data.csv')
+df = pd.read_csv('data/clean_processed_data.csv')
 test_df = pd.read_csv('data/test.csv')
 df.drop(columns=['idParcela'], inplace=True)
 

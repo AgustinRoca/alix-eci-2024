@@ -1,12 +1,5 @@
 import pandas as pd
 
-def written_by_lawyer(texto_reclamo):   
-    words = ['abogado', 'lic', 'estudio', 'legal', 'jurídico']
-    for word in words:
-        if word in texto_reclamo.lower():
-            return True
-    return False
-
 def get_direccion_from_texto_reclamo(texto_reclamo):
     phrases = ['situado en', 'lote en', 'ubicado en', 'terreno urbano en', 'terreno rural en', 'terreno en', 'situada en', 'ubicada en', 'vivienda en', 'localizado en', 'propiedad en', 'lote urbano en', 'terrenito urbano en', 'terrenito en', 'predio rural en', 'un campo en', 'predio urbano en', 'dirección justita es']
     indexes = {}
@@ -28,80 +21,15 @@ def get_direccion_from_texto_reclamo(texto_reclamo):
         return address
     return None
 
-def classify_emotion(text):
-    text_lower = text.lower()
-    if any(word in text_lower for word in ["preocupación", "angustia", "dolor", "triste", "lamento", "devastó", "pérdida"]):
-        return "tristeza"
-    elif any(word in text_lower for word in ["negligencia", "accidente", "enojado", "indignado", "molesto", "fue tan feroz", "se pudo haber prevenido"]):
-        return "enojo"
-    elif any(word in text_lower for word in ["gracias", "agradecido", "aprecio", "reconocimiento", "su apoyo", "cordialmente", "distinguidos"]):
-        return "agradecimiento"
-    else:
-        return "neutral"
+def get_referred_company_name(texto_reclamo):
+    companies = ['SierraVolt Energética Limitada', 'SierraVolt Energética', 'SierraV Segura', 'Aseguradora del Norte', 'Volterra Seguros']
+    for company in companies:
+        if company in texto_reclamo:
+            return company
+    return None
 
-def get_formality_level(texto_reclamo):
-    delete_chars = ['\r\n', ',', '.', '(', ')', '!', '?', '¿', '¡', ';', ':', '"', "'"]
-    for char in delete_chars:
-        texto_reclamo = texto_reclamo.replace(char, ' ')
-    texto_reclamo = ' ' + texto_reclamo.lower() + ' '
-    while '  ' in texto_reclamo:
-        texto_reclamo = texto_reclamo.replace('  ', ' ')
-
-    formal_words = [
-        'indemnización',
-        'agradecemos',
-        'jurídico',
-        'acuerdo',
-        'abogado',
-        'restauración',
-        'resolución',
-        'instrucciones',
-        'acciones',
-        'inmueble',
-        'abogados',
-        'afrontar',
-        'incidente',
-        'solución',
-        'evacuación'
-    ]
-
-    informal_words = [
-        'ya',
-        'pa',
-        'saludos',
-        'ahora',
-        'jodió',
-        'acá',
-        'saludo',
-        'quilombo',
-        'jodidos',
-        'corazón',
-        'hola',
-        'ojalá',
-        'ahí',
-        'guita'
-    ]
-
-    formal_count = 0
-    informal_count = 0
-
-    for word in formal_words:
-        formal_count += texto_reclamo.split().count(word)
-
-    for word in informal_words:
-        informal_count += texto_reclamo.split().count(word)
-
-
-
-    if formal_count > 1.1 * informal_count:
-        return 'formal'
-    elif informal_count > 1.1 * formal_count:
-        return 'informal'
-    else:
-        return 'neutral'
-
-def any_word_in_text(words, text):
-    delete_chars = ['\r\n', ',', '.', '(', ')', '!', '?', '¿', '¡', ';', ':', '"', "'"]
+def any_word_in_clean_text(words, text):
+    delete_chars = ['\r\n', ',', '.', '(', ')', '!', '?', '¿', '¡', ';', ':', '"', "'", '-']
     for char in delete_chars:
         text = text.replace(char, ' ')
     text = ' ' + text.lower() + ' '
@@ -113,40 +41,110 @@ def any_word_in_text(words, text):
             return True
     return False
 
-def get_referred_company_name(texto_reclamo):
-    companies = ['SierraVolt Energética Limitada', 'SierraVolt Energética', 'SierraV Segura', 'Aseguradora del Norte', 'Volterra Seguros']
-    for company in companies:
-        if company in texto_reclamo:
-            return company
-    return None
+def any_word_in_raw_text(words, text):
+    text = text.lower()
+    for word in words:
+        if word in text:
+            return True
+    return False
 
-def get_psychological_impact_mentioned(texto_reclamo):
-    words = ['psicológico', 'emocional']
-    return any_word_in_text(words, texto_reclamo)
+def written_by_lawyer(texto_reclamo):   
+    words = ['abogado', 'lic', 'estudio', 'legal', 'jurídico']
+    for word in words:
+        if word in texto_reclamo.lower():
+            return True
+    return False
 
-def get_economic_impact_mentioned(texto_reclamo):
-    words = ['económico', 'dinero', 'costo', 'gasto', 'presupuesto', 'financiero', 'finanzas']
-    return any_word_in_text(words, texto_reclamo)
+def is_formal(texto_reclamo):
+    informal_raw_words = [ "Pa'", "pa'"]
+    informal_words = [
+        'pa',
+        'jodió',
+        'quilombo',
+        'jodidos',
+        'corazón',
+        'hola',
+        'ojalá',
+        'guita',
+        're',
+        'caliente'
+    ]
 
-def get_physical_impact_mentioned(texto_reclamo):
+    return (not any_word_in_clean_text(informal_words, texto_reclamo)) or (not any_word_in_raw_text(informal_raw_words, texto_reclamo))
+
+def has_hollin(texto_reclamo):
+    words = ['hollín', 'cenizas']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def do_cleaning_and_maintenance(texto_reclamo):
+    words = ['limpieza', 'restauración', 'reforestación', 'mantenimiento']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def has_flora_damage(texto_reclamo):
+    words = ['vegetación', 'flora', 'árboles', 'flores', 'arbustos', 'plantas', 'pasto', 'naturaleza', 'ambiente natural']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def has_emotional_damage(texto_reclamo):
+    words = ['emocional', 'psicológico', 'psicológica', 'emocionalmente', 'psicológicamente', 'emocionales', 'psicológicos']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def has_economic_damage(texto_reclamo):
+    words = ['económico', 'económica', 'económicos', 'económicas', 'económicamente']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def has_physical_damage(texto_reclamo):
     words = ['hospital', 'hospitalización', 'hospitalizado', 'hospitalizada', 'lesiones', 'salud', 'internación', 'internado', 'internada']
-    return any_word_in_text(words, texto_reclamo)
+    return any_word_in_clean_text(words, texto_reclamo)
 
-def get_fauna_impact_mentioned(texto_reclamo):
-    words = ['animal', 'fauna', 'mascota', 'perro', 'gato', 'pájaro', 'mascotas', 'animales', 'perrito', 'gatito', 'pajarito']
-    return any_word_in_text(words, texto_reclamo)
+def has_fauna_damage(texto_reclamo):
+    words = ['animal', 'fauna', 'mascota', 'mascotas', 'animales']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def has_crop_damage(texto_reclamo):
+    words = ['cultivo', 'cultivos', 'cosecha', 'cosechas', 'agricultura']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def has_soil_damage(texto_reclamo):
+    words = ['suelo', 'deterioro', 'deteriorada', 'deteriorado', 'deteriorados', 'deterioradas', 'erosionado', 'desgastado', 'erosión']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def has_insurance_coverage(texto_reclamo):
+    words = ['no cubre']
+    return not any_word_in_clean_text(words, texto_reclamo)
+
+def has_evacuation(texto_reclamo):
+    words = ['evacuación', 'evacuar']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def mentioned_negligence(texto_reclamo):
+    words = ['negligencia', 'negligente', 'negligentes']
+    return any_word_in_clean_text(words, texto_reclamo)
+
+def is_angry(texto_reclamo):
+    words = ['maldita', 'enojado', 'caliente', 'enojo', 'furioso', 'furiosa', 'enojada', 'furiosamente', 'inaceptable', 'intolerable', 'indignante', 'indignado', 'indignada', 'indignados', 'indignadas']
+    return any_word_in_clean_text(words, texto_reclamo)
 
 def main():
     df = pd.read_csv('data/clean_raw_data.csv')
     df['direccion'] = df['TextoReclamo'].apply(get_direccion_from_texto_reclamo)    
-    df['written_by_lawyer'] = df['TextoReclamo'].apply(written_by_lawyer)
-    df['emotion'] = df['TextoReclamo'].apply(classify_emotion)
-    df['formality_level'] = df['TextoReclamo'].apply(get_formality_level)
     df['referred_company'] = df['TextoReclamo'].apply(get_referred_company_name)
-    df['psychological_impact_mentioned'] = df['TextoReclamo'].apply(get_psychological_impact_mentioned)
-    df['economic_impact_mentioned'] = df['TextoReclamo'].apply(get_economic_impact_mentioned)
-    df['physical_impact_mentioned'] = df['TextoReclamo'].apply(get_physical_impact_mentioned)
-    df['fauna_impact_mentioned'] = df['TextoReclamo'].apply(get_fauna_impact_mentioned)
+    df['written_by_lawyer'] = df['TextoReclamo'].apply(written_by_lawyer)
+    df['formal'] = df['TextoReclamo'].apply(is_formal)
+    df['hollin'] = df['TextoReclamo'].apply(has_hollin)
+    df['cleaning_and_maintenance'] = df['TextoReclamo'].apply(do_cleaning_and_maintenance)
+    df['flora_damage'] = df['TextoReclamo'].apply(has_flora_damage)
+    df['emotional_damage'] = df['TextoReclamo'].apply(has_emotional_damage)
+    df['economic_damage'] = df['TextoReclamo'].apply(has_economic_damage)
+    df['physical_damage'] = df['TextoReclamo'].apply(has_physical_damage)
+    df['fauna_damage'] = df['TextoReclamo'].apply(has_fauna_damage)
+    df['crop_damage'] = df['TextoReclamo'].apply(has_crop_damage)
+    df['soil_damage'] = df['TextoReclamo'].apply(has_soil_damage)
+    df['insurance_coverage'] = df['TextoReclamo'].apply(has_insurance_coverage)
+    df['evacuation'] = df['TextoReclamo'].apply(has_evacuation)
+    df['negligence'] = df['TextoReclamo'].apply(mentioned_negligence)
+    df['angry'] = df['TextoReclamo'].apply(is_angry)
+    df['low_claim'] = df['ValorReclamo'] / df['valuacion_fiscal'] < 1.3
+    df['has_mejoras'] = df['valuacion_mejoras'] > 0
     df.to_csv('data/clean_processed_data.csv', index=False)
 
 if __name__ == '__main__':
