@@ -23,20 +23,20 @@ def predict_valuacion_danios(row):
     esta_enojado = row['angry']
     reclamo_bajo = row['low_claim']
     tiene_mejoras = row['has_mejoras']
-    dnbr_alto = row['dnbr'] > 0
+    dnbr = row['dnbr']
     es_baldio = row['estado']
     
-    suma = 2 # creo que 1 es base y despues hay alguno que no encontré
+    suma = 0
     suma += 1 if es_urbano else 0
-    suma += 1 if tiene_abogado else 0
-    suma += 1 if es_formal else 0
+    suma += 0 if tiene_abogado else 1
+    suma += 0 if es_formal else 1
     suma += 1 if tiene_hollin else 0
     suma += 1 if hizo_limpieza else 0
     suma += 1 if tiene_danio_flora else 0
     suma += 1 if tiene_danio_emocional else 0
-    suma += 1 if tiene_danio_economico else 0
-    suma += 1 if tiene_danio_fisico else 0
-    suma += 1 if tiene_danio_fauna else 0
+    suma += 2 if tiene_danio_economico else 0
+    suma += 4 if tiene_danio_fisico else 0
+    suma += 4 if tiene_danio_fauna else 0
     suma += 1 if tiene_danio_cosecha else 0
     suma += 1 if tiene_danio_suelo else 0
     # suma += 0 if tiene_cobertura_seguro else -1
@@ -45,14 +45,18 @@ def predict_valuacion_danios(row):
     suma += 1 if esta_enojado else 0
     # suma += 0 if reclamo_bajo else 1
     suma += 1 if tiene_mejoras else 0
-    suma += 1 if dnbr_alto else 0
     suma += 0 if es_baldio else 1
+    if dnbr > 0.05:
+        suma += 4
+    elif dnbr > 0:
+        suma += 2
 
     # if reclamo_bajo:
     #     predicted = valuacion * 20
     # elif not tiene_cobertura_seguro:
     #     predicted = 0
     # else:
+    suma = max(suma, 6)
     predicted = valuacion * 0.9 * suma / 10
 
     if row['Valuacion_Danios'] > 0:
