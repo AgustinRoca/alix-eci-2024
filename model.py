@@ -12,7 +12,7 @@ def predict_valuacion_danios(row):
     else:
         coef = 6
 
-    predicted = valuacion * 0.9 * coef / 10
+    predicted = valuacion * coef * 0.09
     predicted = round(predicted, 4)
 
     if row['Valuacion_Danios'] > 0:

@@ -126,9 +126,9 @@ def plot_parcel_on_tiff(shapefile_path, tiff_path, field, value_filter):
 
 if __name__ == '__main__':
     # Define paths to shapefile and TIFF file
-    shapefile_path = 'data/parcelas_sanroque.shp'
+    shapefile_path = 'data/parcelas_santiago.shp'
     tiff_path = 'satimgs/dnbr.tif'
-    parcel_id = 1134774  # Replace with the actual parcel ID you want to plot
+    parcel_id = 1205392  # Replace with the actual parcel ID you want to plot
 
     # Call the function to plot the parcel on the TIFF
     plot_parcel_on_tiff(shapefile_path, tiff_path, 'par_idparc', parcel_id)
