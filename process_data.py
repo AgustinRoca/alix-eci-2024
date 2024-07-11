@@ -115,6 +115,10 @@ def reforestacion(texto_reclamo):
     words = ['reforestación']
     return any_word_in_clean_text(words, texto_reclamo)
 
+def remocion(texto_reclamo):
+    words = ['remoción']
+    return any_word_in_clean_text(words, texto_reclamo)
+
 def recuperacion(texto_reclamo):
     words = ['recuperación']
     return any_word_in_clean_text(words, texto_reclamo)
@@ -148,11 +152,12 @@ def madera(texto_reclamo):
     return any_word_in_clean_text(words, texto_reclamo)
 
 def suelo(texto_reclamo):
-    words = ['suelo', 'deterioro', 'deteriorada', 'deteriorado', 'deteriorados', 'deterioradas', 'erosionado', 'desgastado', 'erosión']
+    words = ['suelo', 'deterioro', 'deteriorada', 'deteriorado', 'deteriorados', 'deterioradas', 'erosionado', 'desgastado', 'erosión', 'desolador']
     return any_word_in_clean_text(words, texto_reclamo)
 
 def aire(texto_reclamo):
     words = ['aire']
+    return any_word_in_clean_text(words, texto_reclamo)
 
 def marcas(texto_reclamo):
     words = ['marcas']
@@ -180,7 +185,12 @@ def cultivos(texto_reclamo):
 
 def cobertura(texto_reclamo):
     words = ['no cubre']
-    return not any_word_in_clean_text(words, texto_reclamo)
+    if any_word_in_clean_text(words, texto_reclamo):
+        return False
+    new_words = ['cubre']
+    if any_word_in_clean_text(new_words, texto_reclamo):
+        return True
+    return None
 
 def negligencia(texto_reclamo):
     words = ['negligencia', 'negligente', 'negligentes']
@@ -199,7 +209,7 @@ def responsabilidad(texto_reclamo):
     return any_word_in_clean_text(words, texto_reclamo)
 
 def estructural(texto_reclamo):
-    words = ['estructural', 'estructurales']
+    words = ['estructural', 'estructurales', 'estructura', 'daños considerables en la infraestructura', 'infraestructura perdida', 'infraestructura perjudicada', 'infraestructura de la propiedad', 'infraestructura del terreno']
     return any_word_in_clean_text(words, texto_reclamo)
 
 def main():
@@ -208,7 +218,7 @@ def main():
     df['empresa'] = df['TextoReclamo'].apply(get_referred_company_name)
     df['reclamo_bajo'] = df['ValorReclamo'] / df['valuacion_fiscal'] < 1.3
     df['mejoras'] = df['valuacion_mejoras'] > 0
-    df['abogaod'] = df['TextoReclamo'].apply(abogado)
+    df['abogado'] = df['TextoReclamo'].apply(abogado)
     df['formal'] = df['TextoReclamo'].apply(formal)
     df['hollin'] = df['TextoReclamo'].apply(hollin)
     df['cenizas'] = df['TextoReclamo'].apply(cenizas)
@@ -220,6 +230,7 @@ def main():
     df['reparacion'] = df['TextoReclamo'].apply(reparacion)
     df['restitucion'] = df['TextoReclamo'].apply(restitucion)
     df['reforestacion'] = df['TextoReclamo'].apply(reforestacion)
+    df['remocion'] = df['TextoReclamo'].apply(remocion)
     df['recuperacion'] = df['TextoReclamo'].apply(recuperacion)
     df['reconstruccion'] = df['TextoReclamo'].apply(reconstruccion)
     df['compensacion'] = df['TextoReclamo'].apply(compensacion)
@@ -232,6 +243,7 @@ def main():
     df['madera'] = df['TextoReclamo'].apply(madera)
     df['suelo'] = df['TextoReclamo'].apply(suelo)
     df['marcas'] = df['TextoReclamo'].apply(marcas)
+    df['aire'] = df['TextoReclamo'].apply(aire)
     df['estructural'] = df['TextoReclamo'].apply(estructural)
     df['valor'] = df['TextoReclamo'].apply(valor)
     df['futura_salud'] = df['TextoReclamo'].apply(futura_salud)
