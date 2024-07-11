@@ -5,18 +5,12 @@ def predict_valuacion_danios(row):
     valuacion = row['valuacion_fiscal']
     dnbr = row['dnbr']
     
-    suma = 0
-    if dnbr > 0:
-        suma += 1
     if dnbr > 0.1:
-        suma += 1
-
-    if suma == 0:
-        coef = 6
-    elif suma == 1:
+        coef = 10
+    elif dnbr > 0:
         coef = 9
     else:
-        coef = 10
+        coef = 6
 
     predicted = valuacion * 0.9 * coef / 10
     predicted = round(predicted, 4)
