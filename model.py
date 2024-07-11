@@ -9,8 +9,10 @@ def predict_valuacion_danios(row):
         coef = 10
     elif dnbr > 0:
         coef = 9
-    else:
+    elif dnbr > -0.105:
         coef = 6
+    else:
+        coef = 3
 
     predicted = valuacion * coef * 0.09
     predicted = round(predicted, 4)
