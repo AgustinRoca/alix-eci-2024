@@ -38,12 +38,17 @@ def rename_columns(result):
             'ped_nomenclatura': value['ped_nomenc'],
             'nro_cuenta': value['Nro_Cuenta'],
             'row_number': value['row_number'],
-            'sep_ndvi': value['sep_ndvi'],
-            'nov_ndvi': value['nov_ndvi'],
-
+            'sep_ndvi_min': value['sep_ndvi_min'],
+            'sep_ndvi_max': value['sep_ndvi_max'],
+            'sep_ndvi_mean': value['sep_ndvi_mean'],
+            'nov_ndvi_min': value['nov_ndvi_min'],
+            'nov_ndvi_max': value['nov_ndvi_max'],
+            'nov_ndvi_mean': value['nov_ndvi_mean'],
+            'dnbr_min': value['dnbr_min'],
+            'dnbr_max': value['dnbr_max'],
+            'dnbr_mean': value['dnbr_mean'],
             'par_entity': value['par_entity'],
             'geometry': value['geometry'],
-            'dnbr': value['dnbr'],
         } for key, value in result.items()
     }
     return result_filtered

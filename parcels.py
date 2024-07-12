@@ -46,6 +46,24 @@ def calculate_weighted_mean_pixel_value(tiff_path, geom):
         
     return weighted_mean_pixel_value
 
+def calculate_min_max_pixel_value(tiff_path, geom):
+    with rasterio.open(tiff_path) as tiff:
+        out_image, out_transform = mask(tiff, [geom], crop=True, all_touched=True)
+        out_image = out_image[0]  # Assuming single band TIFF
+        
+        # Initialize variables to calculate min and max
+        min_value = np.inf
+        max_value = -np.inf
+        
+        for row in range(out_image.shape[0]):
+            for col in range(out_image.shape[1]):
+                pixel_value = out_image[row, col]
+                if pixel_value != tiff.nodata:
+                    min_value = min(min_value, pixel_value)
+                    max_value = max(max_value, pixel_value)
+    
+    return min_value, max_value
+
 def get_parcels_data(shapefile_path, tiff_paths):
     # Load shapefile
     shapefile = gpd.read_file(shapefile_path)
@@ -75,10 +93,15 @@ def get_parcels_data(shapefile_path, tiff_paths):
         geom = row['geometry']
         idparcela = row['par_idparc']
         mean_values = {}
+        min_values = {}
+        max_values = {}
         for key, tiff_path in tiff_paths.items():
-            mean_values[key] = calculate_weighted_mean_pixel_value(tiff_path, geom)
+            mean_values[f"{key}_mean"] = calculate_weighted_mean_pixel_value(tiff_path, geom)
+            min_values[f"{key}_min"], max_values[f"{key}_max"] = calculate_min_max_pixel_value(tiff_path, geom)
         record = row.to_dict()
         record.update(mean_values)
+        record.update(min_values)
+        record.update(max_values)
         result[idparcela] = record    
     
     return result
