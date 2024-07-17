@@ -1,21 +1,26 @@
 import pandas as pd
-
+import math
 
 def predict_valuacion_danios(row):
     valuacion = row['valuacion_fiscal']
-    dnbr = row['dnbr']
-    
-    if dnbr > 0.1:
-        coef = 10
-    elif dnbr > 0:
-        coef = 9
-    elif dnbr > -0.105:
-        coef = 6
-    else:
-        coef = 3
+    dnbr = row['dnbr_mean']
+    ratio = row['ValorReclamo'] / valuacion
+
+    if ratio > 10:
+        if dnbr > 0.1:
+            coef = 10
+        elif dnbr > 0:
+            coef = 9
+        elif dnbr > -0.105:
+            coef = 6
+        else:
+            coef = 3
+    else: 
+        coef = 2 / math.log(ratio)
 
     predicted = valuacion * coef * 0.09
     predicted = round(predicted, 4)
+    predicted = predicted if predicted > 0 else 0
 
     if row['Valuacion_Danios'] > 0:
         return row['Valuacion_Danios']
