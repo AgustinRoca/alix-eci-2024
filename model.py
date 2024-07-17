@@ -11,7 +11,7 @@ def predict_valuacion_danios(row):
             coef = 10
         elif dnbr > 0:
             coef = 9
-        elif dnbr > -0.105:
+        elif dnbr > -0.1:
             coef = 6
         else:
             coef = 3
