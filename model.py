@@ -4,19 +4,22 @@ import math
 def predict_valuacion_danios(row):
     valuacion = row['valuacion_fiscal']
     dnbr = row['dnbr_mean']
+    sep_ndvi = row['sep_ndvi_mean']
     ratio = row['ValorReclamo'] / valuacion
 
+    index = dnbr
+
     if ratio > 10:
-        if dnbr > 0.1:
+        if index > 0.1:
             coef = 10
-        elif dnbr > 0:
+        elif index > 0:
             coef = 9
-        elif dnbr > -0.1:
+        elif index > -0.1:
             coef = 6
         else:
             coef = 3
     else: 
-        coef = 0
+        coef = 1
 
     predicted = valuacion * coef * 0.09
     predicted = round(predicted, 4)
