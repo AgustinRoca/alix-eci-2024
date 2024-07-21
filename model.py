@@ -19,7 +19,7 @@ def predict_valuacion_danios(row):
         else:
             coef = 3
     else: 
-        coef = 1
+        coef = 5/ratio
 
     predicted = valuacion * coef * 0.09
     predicted = round(predicted, 4)
