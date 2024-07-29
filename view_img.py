@@ -169,32 +169,54 @@ def get_images():
 
 def main():
     sep_rgb, nov_rgb, sep_ndvi, nov_ndvi, dnbr = get_images()
-
-    ax1 = plt.subplot(3, 2, 1)
+    
+    fig = plt.figure(figsize=(9, 7))  # Create a figure with a specific size
+    
+    ax1 = plt.subplot(2, 3, 1)
     ax1.set_title('Sep RGB')
     plt.imshow(sep_rgb)
     plt.axis('off')
-
-    ax2 = plt.subplot(3, 2, 2, sharex=ax1, sharey=ax1)
-    ax2.set_title('Nov RGB')
-    plt.imshow(nov_rgb)
-    plt.axis('off')
     
-    ax3 = plt.subplot(3, 2, 3, sharex=ax1, sharey=ax1)
+    ax3 = plt.subplot(2, 3, 2, sharex=ax1, sharey=ax1)
     ax3.set_title('Sep NDVI')
     plt.imshow(sep_ndvi)
     plt.axis('off')
     
-    ax4 = plt.subplot(3, 2, 4, sharex=ax1, sharey=ax1)
+    ax2 = plt.subplot(2, 3, 4, sharex=ax1, sharey=ax1)
+    ax2.set_title('Nov RGB')
+    plt.imshow(nov_rgb)
+    plt.axis('off')
+    
+    ax4 = plt.subplot(2, 3, 5, sharex=ax1, sharey=ax1)
     ax4.set_title('Nov NDVI')
     plt.imshow(nov_ndvi)
     plt.axis('off')
-
-    ax5 = plt.subplot(3, 2, 5, sharex=ax1, sharey=ax1)
-    ax5.set_title('DNBR')
+    
+    ax5 = plt.subplot(2, 3, 3, sharex=ax1, sharey=ax1)
+    ax5.set_title('dNBR')
     plt.imshow(dnbr)
     plt.axis('off')
-
+    
+    # Define colors and labels for NDVI
+    ndvi_colors = ['white', '#75c377', '#00441b']
+    ndvi_labels = ['Sin vegetación', 'Poca vegetación', 'Alta vegetación']
+    
+    # Define colors and labels for NDBR
+    ndbr_colors = ['#7efc27', '#f5f22f', '#e98112', '#c40000']
+    ndbr_labels = ['Nada afectado', 'Poco afectado', 'Medianamente afectado', 'Muy afectado']
+    
+    # Create patches for the legend
+    ndvi_patches = [plt.Rectangle((0,0),1,1, facecolor=c, edgecolor='none') for c in ndvi_colors]
+    ndbr_patches = [plt.Rectangle((0,0),1,1, facecolor=c, edgecolor='none') for c in ndbr_colors]
+    
+    # Add the legends to the figure
+    fig.legend(ndvi_patches, ndvi_labels, loc='center', bbox_to_anchor=(0.85, 0.35), 
+               ncol=1, title='NDVI')
+    fig.legend(ndbr_patches, ndbr_labels, loc='center', bbox_to_anchor=(0.85, 0.15), 
+               ncol=1, title='dNBR')
+    
+    plt.tight_layout()
+    
     plt.show()
 
 if __name__ == '__main__':
